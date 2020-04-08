@@ -1,0 +1,14 @@
+{
+  "Belgium": {
+    "feed_name": "De Standaard",
+    "feed_url": "https://cors-anywhere.herokuapp.com/https://www.standaard.be/rss/section/1f2838d4-99ea-49f0-9102-138784c7ea7c"
+  },
+  "Netherlands": {
+    "feed_name": "NU.nl",
+    "feed_url": "https://cors-anywhere.herokuapp.com/https://www.nu.nl/rss/Gezondheid"
+  },
+  "Default": {
+    "feed_name": "World Health Organization",
+    "feed_url": "https://cors-anywhere.herokuapp.com/https://www.who.int/rss-feeds/news-english.xml"
+  }
+}

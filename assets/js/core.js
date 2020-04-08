@@ -1,6 +1,8 @@
 /**
  *
  */
+
+
 let hexToRgba = function(hex, opacity) {
   let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   let rgb = result ? {
@@ -11,6 +13,62 @@ let hexToRgba = function(hex, opacity) {
 
   return 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + opacity + ')';
 };
+
+// Date stuff, used to create the graph when no country is selected
+// Empty arrays for countries
+let country_cases = ['cases'];
+let country_deaths = ['deaths'];
+let country_recovered = ['recovered'];
+let country_categories = ["x"];
+
+
+
+// Draw the curve graph for the current country
+require(['c3', 'jquery'], function(c3, $) {
+  						$(document).ready(function(){
+    						window.country_chart = c3.generate({
+      						bindto: '#curve_country', // id of chart wrapper
+      						data: {
+        						columns: [
+            						// each columns data
+          						country_cases,
+          						country_deaths,
+          						country_recovered
+        						],
+        						labels: false,
+        						type: 'area', // default type of chart
+        						colors: {
+          							'cases': tabler.colors["blue"],
+          							'deaths': tabler.colors["red"],
+          							'recovered': tabler.colors["green"]
+        						},
+        						names: {
+            						// name of each serie
+          							'cases': 'Cases',
+          							'deaths': 'Deaths',
+          							'recovered': 'Recovered'
+        						}
+      						},
+      						axis: {
+        						x: {
+          						type: 'category',
+          						// name of each category
+          						//categories: country_categories
+        						},
+      						},
+      						legend: {
+                					show: true, //hide legend
+      						},
+      						padding: {
+        						bottom: 0,
+        						top: 0
+      						},
+    						});
+  						});
+						});
+
+
+
 
 /**
  *
@@ -105,3 +163,109 @@ $(document).ready(function() {
     });
   }
 });
+
+function fetchData(country){
+    $.getJSON("https://corona.lmao.ninja/countries/" + country, function(data){
+      $("#deaths_today").html(data.todayDeaths);
+      $("#cases_today").html(data.todayCases);
+      $("#tot_cases").html(data.cases);
+      $("#tot_deaths").html(data.deaths);
+      $("#tot_recovered").html(data.recovered);
+      $("#critical").html(data.critical);
+      $("#country_identifier").html("COVID-19 statistics for <strong>" + data.country + "</strong> ");
+      //$("#curve_country_id").html("Curve for " + data.country);
+      $("#country_avatar").css("background-image", "url(" + data.countryInfo.flag + ")");
+      $("#country_avatar").html("");
+    });
+
+    $.getJSON('feeds.json', function(feeds){
+      $("#rss_entries").empty();
+      $("#rss_entries").html("<tr><td><img src='./assets/images/loader.gif' /></td><td>Fetching data. One moment please...</td></tr>");
+      let count = 0;
+      let rss_feed;
+      if (country in feeds) {
+        $("#rss_feed_title").html("RSS Feed for " + country + "<span class='rss-span'> Source:" + feeds[country].feed_name + "</span>");
+        rss_feed = feeds[country].feed_url;
+      } else {
+        $("#rss_feed_title").html("RSS Feed <span class='rss-span'> Source:" + feeds['Default'].feed_name + "</span>");
+        rss_feed = feeds['Default'].feed_url;
+      }
+
+      $.get(rss_feed, function(rss) {
+        let html_content = "";
+          $(rss).find('item').each(function() {
+            if(count>3) return false;
+            let $item = $(this);
+            let title = $item.find('title').text();
+            let link = $item.find('link').text();
+            let rssdate = $item.find('pubDate').text();
+
+            let entry = "<tr><td>" + rssdate + "</td><td>" + "<a href='"+ link + "' target='_blank'>" + title + "</a></td></tr>";
+
+
+            html_content += entry;
+            count++;
+
+          })
+        $("#rss_entries").html(html_content);
+        })
+
+    });
+
+    $.getJSON("https://corona.lmao.ninja/v2/historical/" + country + "?lastdays=all", function(data){
+      country_deaths = ['deaths'];
+      country_cases = ['cases'];
+      country_recovered = ['recovered'];
+      country_categories = ['x'];
+      //console.log(data.timeline.cases);
+      $.each(data.timeline.cases, function(casedate, value){
+        country_categories.push(casedate);
+        country_cases.push(value);
+      });
+      $.each(data.timeline.deaths, function(casedate, value){
+        country_deaths.push(value);
+      });
+      $.each(data.timeline.recovered, function(casedate, value){
+        country_recovered.push(value);
+      });
+      $("#curve_country_id").html("Curve for " + country);
+      country_chart.load({
+        columns: [
+          country_cases,
+          country_deaths,
+          country_recovered
+        ]
+      });
+
+  })
+        .fail(function(event, jqhxr, exception){
+          country_chart.unload();
+          $("#curve_country_id").html("No curve data found for " + country);
+
+          //$("#curve_country_id").html("No data found " +);
+        });
+}
+
+$(document).ready(function(){
+  // Fetch the list of countries available
+  $.getJSON("https://corona.lmao.ninja/countries", function(countries){
+    // Create a new array to sort the countries
+    let country_array = [];
+    $.each(countries, function(i, country){
+      country_array.push(country.country);
+    });
+    country_array.sort();
+
+    // Populate selectbox
+    $.each(country_array, function(i, country){
+      $("#countries").append('<option value=' + country_array[i] + '>' + country_array[i] + '</option>');
+    })
+  });
+
+  $("#countries").on('change', function() {
+    fetchData(this.value);
+  })
+
+});
+
+
