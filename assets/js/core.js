@@ -189,10 +189,10 @@ function fetchData(country){
       let count = 0;
       let rss_feed;
       if (country in feeds) {
-        $("#rss_feed_title").html("RSS Feed for " + country + "<span class='rss-span'> Source:" + feeds[country].feed_name + "</span>");
+        $("#rss_feed_title").html("RSS Feed for " + country + "<span class='rss-span'> Source: " + feeds[country].feed_name + "</span>");
         rss_feed = feeds[country].feed_url;
       } else {
-        $("#rss_feed_title").html("RSS Feed <span class='rss-span'> Source:" + feeds['Default'].feed_name + "</span>");
+        $("#rss_feed_title").html("RSS Feed <span class='rss-span'> Source: " + feeds['Default'].feed_name + "</span>");
         rss_feed = feeds['Default'].feed_url;
       }
 
