@@ -19,7 +19,7 @@ let hexToRgba = function(hex, opacity) {
 let country_cases = ['cases'];
 let country_deaths = ['deaths'];
 let country_recovered = ['recovered'];
-let country_categories = ["x"];
+let country_dates = ["Dates"];
 
 
 
@@ -29,8 +29,10 @@ require(['c3', 'jquery'], function(c3, $) {
     						window.country_chart = c3.generate({
       						bindto: '#curve_country', // id of chart wrapper
       						data: {
+      						    x: 'Dates',
         						columns: [
             						// each columns data
+                                country_dates,
           						country_cases,
           						country_deaths,
           						country_recovered
@@ -51,9 +53,12 @@ require(['c3', 'jquery'], function(c3, $) {
       						},
       						axis: {
         						x: {
-          						type: 'category',
+          						type: 'timeseries',
+                                tick: {
+          						  format: '%b %d, %Y'
+                                }
           						// name of each category
-          						//categories: country_categories
+          						//categories: country_dates
         						},
       						},
       						legend: {
@@ -216,10 +221,10 @@ function fetchData(country){
       country_deaths = ['deaths'];
       country_cases = ['cases'];
       country_recovered = ['recovered'];
-      country_categories = ['x'];
+      country_dates = ['Dates'];
       //console.log(data.timeline.cases);
       $.each(data.timeline.cases, function(casedate, value){
-        country_categories.push(casedate);
+        country_dates.push(new Date(casedate));
         country_cases.push(value);
       });
       $.each(data.timeline.deaths, function(casedate, value){
@@ -231,6 +236,7 @@ function fetchData(country){
       $("#curve_country_id").html("Curve for " + country);
       country_chart.load({
         columns: [
+          country_dates,
           country_cases,
           country_deaths,
           country_recovered
