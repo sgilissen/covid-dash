@@ -21,7 +21,10 @@ let country_deaths = ['deaths'];
 let country_recovered = ['recovered'];
 let country_dates = ["Dates"];
 
-
+let cookie_name = 'covid19-countryselection';
+let refreshInterval = 300;
+let countdown;
+let countdownString;
 
 // Draw the curve graph for the current country
 require(['c3', 'jquery'], function(c3, $) {
@@ -170,6 +173,8 @@ $(document).ready(function() {
 });
 
 function fetchData(country){
+    countdown = refreshInterval;
+    //curDate = new Date();
     $.getJSON("https://corona.lmao.ninja/countries/" + country, function(data){
       $("#deaths_today").html(data.todayDeaths);
       $("#cases_today").html(data.todayCases);
@@ -222,7 +227,6 @@ function fetchData(country){
       country_cases = ['cases'];
       country_recovered = ['recovered'];
       country_dates = ['Dates'];
-      //console.log(data.timeline.cases);
       $.each(data.timeline.cases, function(casedate, value){
         country_dates.push(new Date(casedate));
         country_cases.push(value);
@@ -247,9 +251,40 @@ function fetchData(country){
         .fail(function(event, jqhxr, exception){
           country_chart.unload();
           $("#curve_country_id").html("No curve data found for " + country);
-
-          //$("#curve_country_id").html("No data found " +);
         });
+}
+
+function createCookie(name, value, days) {
+  let expires = "";
+  if (days) {
+    let date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  } else {
+    expires = "";
+  }
+  document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+
+function readCookie(name) {
+  let nameEQ = name + "=";
+  let ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+
+function eraseCookie(name) {
+  createCookie(name, "", -1);
+}
+
+function setCountry(country) {
+  $("#countries").val(country).change();
 }
 
 $(document).ready(function(){
@@ -265,13 +300,29 @@ $(document).ready(function(){
     // Populate selectbox
     $.each(country_array, function(i, country){
       $("#countries").append('<option value=' + country_array[i] + '>' + country_array[i] + '</option>');
-    })
+    });
+    setCountry(readCookie(cookie_name));
   });
+
 
   $("#countries").on('change', function() {
     fetchData(this.value);
-  })
+    createCookie(cookie_name, this.value, 180);
+  });
+
+  setInterval(function() {
+    let country = $("#countries option:selected").text();
+    fetchData(country);
+  }, refreshInterval * 1000);
+
+  setInterval(function() {
+    countdown -= 1;
+    let time = new Date(null);
+    time.setSeconds(countdown);
+    countdownString = "Next refresh: " + String(time.getMinutes()).padStart(2, '0') + ":" + String(time.getSeconds()).padStart(2, '0');
+    $("#refresh-counter").html(countdownString);
+  }, 1000);
+
 
 });
-
 

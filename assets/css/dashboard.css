@@ -18643,6 +18643,7 @@ svg {
   background-color: #fff;
   text-align: right;
   border: 6px solid transparent;
+  width: 140px;
 }
 
 .countryselect-selected:after {
@@ -18661,4 +18662,10 @@ svg {
 .rss-span {
   font-size: 12px;
   color: #0d8ddc;
+}
+
+.refresh-counter {
+  font-size: 10px;
+  font-style: italic;
+  text-align: right;
 }

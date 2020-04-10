@@ -1,7 +1,7 @@
 {
   "Belgium": {
-    "feed_name": "VRT NWS",
-    "feed_url": "https://cors-anywhere.herokuapp.com/http://feeds.feedburner.com/flanderstoday2"
+    "feed_name": "De Morgen",
+    "feed_url": "https://script.google.com/macros/s/AKfycbzwdEwzZMMKAEAlJpsB4QO4dMMfRIyCJN6Zkb-k/exec"
   },
   "Netherlands": {
     "feed_name": "NU.nl",
