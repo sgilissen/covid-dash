@@ -1,8 +1,6 @@
 /**
  *
  */
-
-
 let hexToRgba = function(hex, opacity) {
   let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   let rgb = result ? {
@@ -20,6 +18,10 @@ let country_cases = ['cases'];
 let country_deaths = ['deaths'];
 let country_recovered = ['recovered'];
 let country_dates = ["Dates"];
+
+let country_cases_daily = ['cases_daily'];
+let country_deaths_daily = ['deaths_daily'];
+let country_recovered_daily = ['recovered_daily'];
 
 let cookie_name = 'covid19-countryselection';
 let refreshInterval = 300;
@@ -75,8 +77,54 @@ require(['c3', 'jquery'], function(c3, $) {
   						});
 						});
 
-
-
+// Draw the graph for daily stats
+require(['c3', 'jquery'], function(c3, $) {
+  						$(document).ready(function(){
+    						window.country_chart_daily = c3.generate({
+      						bindto: '#daily_country', // id of chart wrapper
+      						data: {
+      						    x: 'Dates',
+        						columns: [
+            						// each columns data
+                                country_dates,
+          						country_cases_daily,
+          						country_deaths_daily,
+          						country_recovered_daily
+        						],
+        						labels: false,
+        						type: 'area', // default type of chart
+        						colors: {
+          							'cases_daily': tabler.colors["blue"],
+          							'deaths_daily': tabler.colors["red"],
+          							'recovered_daily': tabler.colors["green"]
+        						},
+        						names: {
+            						// name of each serie
+          							'cases_daily': 'Cases',
+          							'deaths_daily': 'Deaths',
+          							'recovered_daily': 'Recovered'
+        						}
+      						},
+      						axis: {
+        						x: {
+          						type: 'timeseries',
+                                tick: {
+          						  format: '%b %d, %Y'
+                                }
+          						// name of each category
+          						//categories: country_dates
+        						},
+      						},
+      						legend: {
+                					show: true, //hide legend
+      						},
+      						padding: {
+        						bottom: 0,
+        						top: 0
+      						},
+    						});
+  						});
+						});
 
 /**
  *
@@ -172,6 +220,64 @@ $(document).ready(function() {
   }
 });
 
+function calcDataByDay() {
+  // Reverse the existing arrays
+  let reversed_deaths = country_deaths.reverse();
+  let reversed_cases = country_cases.reverse();
+  let reversed_recovered = country_recovered.reverse();
+  // Remove the descriptor entry from the array
+  reversed_deaths.splice(-1,1);
+  reversed_cases.splice(-1,1);
+  reversed_recovered.splice(-1,1);
+
+  // Clear the arrays
+  country_deaths_daily = [];
+  country_recovered_daily = [];
+  country_cases_daily = [];
+
+
+  $.each(reversed_cases, function(i) {
+    let cur = reversed_cases[i] - reversed_cases[i+1];
+    if (!isNaN(cur)) {
+      country_cases_daily.push(cur);
+    }
+  });
+  country_cases_daily.push('cases_daily');
+
+  $.each(reversed_deaths, function(i) {
+    let cur = reversed_deaths[i] - reversed_deaths[i+1];
+    if (!isNaN(cur)) {
+      country_deaths_daily.push(cur);
+    }
+
+  });
+  country_deaths_daily.push('deaths_daily');
+
+  $.each(reversed_recovered, function(i) {
+    let cur = reversed_recovered[i] - reversed_recovered[i+1];
+    if (!isNaN(cur)) {
+      country_recovered_daily.push(cur);
+    }
+  });
+  country_recovered_daily.push('recovered_daily');
+
+  country_recovered_daily.reverse();
+  country_deaths_daily.reverse();
+  country_cases_daily.reverse();
+
+  country_chart_daily.unload();
+
+  country_chart_daily.load({
+        columns: [
+          country_dates,
+          country_cases_daily,
+          country_deaths_daily,
+          country_recovered_daily
+        ]
+      });
+
+}
+
 function fetchData(country){
     countdown = refreshInterval;
     //curDate = new Date();
@@ -246,6 +352,7 @@ function fetchData(country){
           country_recovered
         ]
       });
+      calcDataByDay();
 
   })
         .fail(function(event, jqhxr, exception){
@@ -308,11 +415,13 @@ $(document).ready(function(){
   $("#countries").on('change', function() {
     fetchData(this.value);
     createCookie(cookie_name, this.value, 180);
+    calcDataByDay();
   });
 
   setInterval(function() {
     let country = $("#countries option:selected").text();
     fetchData(country);
+
   }, refreshInterval * 1000);
 
   setInterval(function() {
