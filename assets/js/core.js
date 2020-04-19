@@ -281,7 +281,7 @@ function calcDataByDay() {
 function fetchData(country){
     countdown = refreshInterval;
     //curDate = new Date();
-    $.getJSON("https://corona.lmao.ninja/countries/" + country, function(data){
+    $.getJSON("https://corona.lmao.ninja/v2/countries/" + country, function(data){
       $("#deaths_today").html(data.todayDeaths);
       $("#cases_today").html(data.todayCases);
       $("#tot_cases").html(data.cases);
@@ -396,7 +396,7 @@ function setCountry(country) {
 
 $(document).ready(function(){
   // Fetch the list of countries available
-  $.getJSON("https://corona.lmao.ninja/countries", function(countries){
+  $.getJSON("https://corona.lmao.ninja/v2/countries", function(countries){
     // Create a new array to sort the countries
     let country_array = [];
     $.each(countries, function(i, country){
